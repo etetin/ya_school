@@ -25,7 +25,9 @@ SECRET_KEY = '72%vd1foth!9i0&1r%xk13j3#sx9&jw1l=)(f=cm_g319@dzyk'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '*'
+]
 
 
 # Application definition
@@ -37,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'ya.api',
+    'ya.common'
 ]
 
 MIDDLEWARE = [
@@ -75,8 +79,11 @@ WSGI_APPLICATION = 'ya.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ya_api',
+        'USER': '',
+        'HOST': 'localhost',
+        'PORT': 5432,
     }
 }
 
