@@ -106,6 +106,18 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    # 'DEFAULT_AUTHENTICATION_CLASSES': (
+    #     'baristika.api.CustomTokenAuthentication',
+    # ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+        # 'rest_framework.permissions.AllowAny',
+        # 'baristika.api.AllowOptionsAuthentication',
+    # ),
+    # 'EXCEPTION_HANDLER': 'baristika.common.exception.custom_exception_handler',
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
@@ -125,3 +137,5 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+HOST_ADDRESS = 'http://127.0.0.1:8000'
