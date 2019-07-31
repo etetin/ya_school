@@ -183,3 +183,27 @@ def import_change(request, import_id, citizen_id):
         },
         status=200
     )
+
+
+@api_view(['GET',])
+def import_data(request, import_id):
+    result = {
+        'data': []
+    }
+    
+    for citizen in Citizen.objects.filter(import_id=import_id):
+        citizen_data = {
+            "citizen_id": citizen.citizen_id,
+            "town": citizen.town,
+            "street": citizen.street,
+            "building": citizen.building,
+            "apartment": citizen.apartment,
+            "name": citizen.name,
+            "birth_date": citizen.birth_date,
+            "gender": citizen.gender,
+            "relatives": citizen.relatives,
+        }
+        result['data'].append(citizen_data)
+
+    return Response(result, status=200)
+
