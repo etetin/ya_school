@@ -7,7 +7,7 @@ from django.db.models import Max
 import json
 from datetime import datetime
 
-from ..common.models import Citizen
+from ya.common.models import Citizen
 
 
 def try_convert_date(data):
@@ -141,40 +141,41 @@ def import_change(request, import_id, citizen_id):
     if not valid_citizens_data:
         return Response(status=400)
 
-    # town = request.data.get('town', None)
-    # street = request.data.get('street', None)
-    # building = request.data.get('building', None)
-    # apartment = request.data.get('apartment', None)
-    # name = request.data.get('name', None)
-    # birth_date = request.data.get('birth_date', None)
-    # gender = request.data.get('gender', None)
-    # relatives = request.data.get('relatives', None)
+    town = request.data.get('town', None)
+    street = request.data.get('street', None)
+    building = request.data.get('building', None)
+    apartment = request.data.get('apartment', None)
+    name = request.data.get('name', None)
+    birth_date = request.data.get('birth_date', None)
+    gender = request.data.get('gender', None)
+    relatives = request.data.get('relatives', None)
 
     # It's normal way to set attrs like this???
-    fields = ['town', 'street', 'building', 'apartment', 'name', 'birth_date', 'gender', 'relatives']
-    for field in fields:
-        data = request.data.get(field, None)
-        if data is not None:
-            citizen.__setattr__(field, data)
+    # fields = ['town', 'street', 'building', 'apartment', 'name', 'birth_date', 'gender', 'relatives']
+    # for field in fields:
+    #     data = request.data.get(field, None)
+    #     if data is not None:
+    #         citizen.__setattr__(field, data)
 
-    # if town is not None:
-    #     citizen.town = town
-    # if street is not None:
-    #     citizen.street = street
-    # if building is not None:
-    #     citizen.building = building
-    # if apartment is not None:
-    #     citizen.apartment = apartment
-    # if name is not None:
-    #     citizen.name = name
-    # if birth_date is not None:
-    #     citizen.birth_date = birth_date
-    # if gender is not None:
-    #     citizen.gender = gender
-    # if relatives is not None:
-    #     citizen.relatives = relatives
+    if town is not None:
+        citizen.town = town
+    if street is not None:
+        citizen.street = street
+    if building is not None:
+        citizen.building = building
+    if apartment is not None:
+        citizen.apartment = apartment
+    if name is not None:
+        citizen.name = name
+    if birth_date is not None:
+        citizen.birth_date = birth_date
+    if gender is not None:
+        citizen.gender = gender
+    if relatives is not None:
+        citizen.relatives = relatives
 
-    citizen.save()
+    if any(field is not None for field in [town, street, building, apartment, name, birth_date, gender, relatives]):
+        citizen.save()
 
     return Response({
             'data': {
@@ -190,7 +191,7 @@ def import_data(request, import_id):
     result = {
         'data': []
     }
-    
+
     for citizen in Citizen.objects.filter(import_id=import_id):
         citizen_data = {
             "citizen_id": citizen.citizen_id,

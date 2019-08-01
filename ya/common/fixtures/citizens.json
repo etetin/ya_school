@@ -1,0 +1,34 @@
+[
+    {
+        "model": "common.citizen",
+        "pk": 1,
+        "fields": {
+            "citizen_id": 1,
+            "import_id": 1,
+            "town": "moscow",
+            "street": "Льва Толстого",
+            "building": "6к17стр15",
+            "apartment": 11,
+            "name": "Иван Иванович Иванов",
+            "birth_date": "11.11.1990",
+            "gender": "male",
+            "relatives": [2]
+        }
+    },
+    {
+        "model": "common.citizen",
+        "pk": 2,
+        "fields": {
+            "citizen_id": 2,
+            "import_id": 1,
+            "town": "spb",
+            "street": "Петра Великого",
+            "building": "16к7стр5",
+            "apartment": 22,
+            "name": "Галина Николаевна Иванов",
+            "birth_date": "12.12.1992",
+            "gender": "female",
+            "relatives": [1]
+        }
+    }
+]
