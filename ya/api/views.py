@@ -2,7 +2,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, Count
+from django.db.models.functions import ExtractMonth
 
 import json
 from datetime import datetime
@@ -17,7 +18,7 @@ def diff(first, second):
 
 def try_convert_date(data):
     try:
-        datetime.strptime(data, "%d.%m.%Y")
+        datetime.strptime(data, "%d.%m.%Y").strftime('%Y-%m-%d')
         return True
     except (ValueError, TypeError) as err:
         return False
@@ -121,7 +122,7 @@ def imports(request):
             building=citizen_data['building'],
             apartment=citizen_data['apartment'],
             name=citizen_data['name'],
-            birth_date=citizen_data['birth_date'],
+            birth_date=datetime.strptime(citizen_data['birth_date'], "%d.%m.%Y").strftime('%Y-%m-%d'),
             gender=citizen_data['gender'],
             relatives=citizen_data['relatives'],
         )
@@ -219,7 +220,7 @@ def import_data(request, import_id):
             "building": citizen.building,
             "apartment": citizen.apartment,
             "name": citizen.name,
-            "birth_date": citizen.birth_date,
+            "birth_date": citizen.birth_date.strftime("%d.%m.%Y"),
             "gender": citizen.gender,
             "relatives": citizen.relatives,
         }
@@ -227,3 +228,30 @@ def import_data(request, import_id):
 
     return Response(result, status=200)
 
+
+@api_view(['GET',])
+def import_birthdays(request, import_id):
+    result = {
+        'data': {}
+    }
+    for num in range(1, 13):
+        result['data'][str(num)] = []
+
+    print(result)
+
+    citizens = Citizen.objects.filter(import_id=import_id)
+    for citizen in citizens:
+        tt = citizens.filter(citizen_id__in=citizen.relatives) \
+            .annotate(month=ExtractMonth('birth_date')) \
+            .values('month') \
+            .annotate(count=Count('id'))\
+            .values('month', 'count')
+
+        for t in tt:
+            result['data'][str(t["month"])].append({
+                'citizen_id': citizen.citizen_id,
+                'count': int(t["count"])
+            })
+            # print(f'{t["month"]} {citizen.citizen_id} {t["count"]}')
+
+    return Response(result, status=200)

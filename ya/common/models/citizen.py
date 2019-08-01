@@ -12,7 +12,7 @@ class Citizen(models.Model):
     building = models.CharField(max_length=255, null=False)
     apartment = models.IntegerField(null=False)
     name = models.CharField(max_length=255, null=False)
-    birth_date = models.CharField(max_length=255, null=False)
+    birth_date = models.DateField(null=False)
     gender = models.CharField(max_length=6, null=False)
     relatives = ArrayField(models.BigIntegerField(null=False), default=list)
 
