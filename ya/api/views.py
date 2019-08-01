@@ -10,6 +10,11 @@ from datetime import datetime
 from ya.common.models import Citizen
 
 
+def diff(first, second):
+    second = set(second)
+    return [item for item in first if item not in second]
+
+
 def try_convert_date(data):
     try:
         datetime.strptime(data, "%d.%m.%Y")
@@ -172,7 +177,21 @@ def import_change(request, import_id, citizen_id):
     if gender is not None:
         citizen.gender = gender
     if relatives is not None:
-        citizen.relatives = relatives
+        try:
+            with transaction.atomic():
+                for relative_citizen_id in diff(relatives, citizen.relatives):
+                    relative_citizen = Citizen.objects.get(import_id=import_id, citizen_id=relative_citizen_id)
+                    relative_citizen.relatives.append(citizen_id)
+                    relative_citizen.save()
+
+                for relative_citizen_id in diff(citizen.relatives, relatives):
+                    relative_citizen = Citizen.objects.get(import_id=import_id, citizen_id=relative_citizen_id)
+                    relative_citizen.relatives.remove(citizen_id)
+                    relative_citizen.save()
+
+                citizen.relatives = relatives
+        except (ValueError, Citizen.DoesNotExist):
+            return Response(status=400)
 
     if any(field is not None for field in [town, street, building, apartment, name, birth_date, gender, relatives]):
         citizen.save()

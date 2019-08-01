@@ -70,14 +70,6 @@ class TestImportChange(APITransactionTestCase):
         actual_data = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
         self.assertEqual(self.INITIAL_DATA, actual_data)
 
-    def test_empty_params(self):
-        with self.assertNumQueries(1):
-            response = self.client.patch(f'/api/imports/{self.IMPORT_ID}/citizens/{self.CITIZEN_ID}', {})
-            self.assertEqual(response.status_code, 200)
-
-        actual_data = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
-        self.assertEqual(self.INITIAL_DATA, actual_data)
-
     # try to update all fields
     def test_correct_params(self):
         # this two queries is select from Citizen and update
