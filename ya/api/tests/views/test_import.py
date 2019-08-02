@@ -14,6 +14,8 @@ class TestImport(APITransactionTestCase):
         'relatives': [2, 12]
     }
 
+    # TODO add comparing of expected and actual data
+
     def test_wrong_param_citizen(self):
         for value in ['1', None]:
             self.CITIZEN['citizen_id'] = value

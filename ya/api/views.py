@@ -6,7 +6,8 @@ from django.db.models import Max, Count
 from django.db.models.functions import ExtractMonth
 
 import json
-from datetime import datetime
+from datetime import datetime, date
+from dateutil import relativedelta
 
 from ya.common.models import Citizen
 
@@ -16,12 +17,15 @@ def diff(first, second):
     return [item for item in first if item not in second]
 
 
-def try_convert_date(data):
+def try_convert_date(date):
     try:
-        datetime.strptime(data, "%d.%m.%Y").strftime('%Y-%m-%d')
-        return True
+        return datetime.strptime(date, "%d.%m.%Y").strftime('%Y-%m-%d')
     except (ValueError, TypeError) as err:
         return False
+
+
+def convert_date(date):
+    return datetime.strptime(date, "%d.%m.%Y").strftime('%Y-%m-%d')
 
 
 def validator(citizens, full=True):
@@ -122,7 +126,7 @@ def imports(request):
             building=citizen_data['building'],
             apartment=citizen_data['apartment'],
             name=citizen_data['name'],
-            birth_date=datetime.strptime(citizen_data['birth_date'], "%d.%m.%Y").strftime('%Y-%m-%d'),
+            birth_date=convert_date(citizen_data['birth_date']),
             gender=citizen_data['gender'],
             relatives=citizen_data['relatives'],
         )
@@ -174,7 +178,7 @@ def import_change(request, import_id, citizen_id):
     if name is not None:
         citizen.name = name
     if birth_date is not None:
-        citizen.birth_date = birth_date
+        citizen.birth_date = convert_date(birth_date)
     if gender is not None:
         citizen.gender = gender
     if relatives is not None:
@@ -234,6 +238,7 @@ def import_birthdays(request, import_id):
     result = {
         'data': {}
     }
+
     for num in range(1, 13):
         result['data'][str(num)] = []
 
@@ -252,6 +257,35 @@ def import_birthdays(request, import_id):
                 'citizen_id': citizen.citizen_id,
                 'count': int(t["count"])
             })
-            # print(f'{t["month"]} {citizen.citizen_id} {t["count"]}')
 
+    return Response(result, status=200)
+
+
+@api_view(['GET',])
+def import_birthdays_age(request, import_id):
+    result = {}
+    data = {}
+
+    # TODO Probably this is not best solution
+    percentiles = [50, 75, 90]
+
+    current_date = date.today()
+    citizens = Citizen.objects.filter(import_id=import_id)
+    for citizen in citizens:
+        stat = data.get(citizen.town, {
+            'p50': 0,
+            'p75': 0,
+            'p90': 0,
+            'all': 0,
+        })
+        years = relativedelta.relativedelta(current_date, citizen.birth_date).years
+        for percentile in percentiles:
+            print(f'{years} {percentile}')
+            if years < percentile:
+                stat[f'p{percentile}'] += 1
+                stat['all'] += 1
+
+        data[citizen.town] = stat
+
+    result['data'] = data
     return Response(result, status=200)

@@ -2,6 +2,7 @@ from rest_framework.test import APITransactionTestCase
 
 from ya.common.models import Citizen
 
+from datetime import datetime, date
 
 class TestImportChange(APITransactionTestCase):
     fixtures = [
@@ -35,13 +36,14 @@ class TestImportChange(APITransactionTestCase):
         'name': 'Иванов Иван Иванович',
         'birth_date': '01.02.2012',
         'gender': 'male',
-        'relatives': [2, 12]
+        'relatives': [2]
     }
 
     # partial correct params
     CITIZEN_PCP = {
         'town': 'old town',
         'street': "road",
+        'birth_date': '07.09.1996',
     }
 
     IMPORT_ID, CITIZEN_ID = 1, 1
@@ -84,7 +86,7 @@ class TestImportChange(APITransactionTestCase):
             'building': actual_data.building,
             'apartment': actual_data.apartment,
             'name': actual_data.name,
-            'birth_date': actual_data.birth_date,
+            'birth_date': actual_data.birth_date.strftime('%d.%m.%Y'),
             'gender': actual_data.gender,
             'relatives': actual_data.relatives,
         }
@@ -97,13 +99,14 @@ class TestImportChange(APITransactionTestCase):
             self.assertEqual(response.status_code, 200)
 
         actual_data = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
+
         actual_data = {
             'town': actual_data.town,
             'street': actual_data.street,
             'building': actual_data.building,
             'apartment': actual_data.apartment,
             'name': actual_data.name,
-            'birth_date': actual_data.birth_date,
+            'birth_date': actual_data.birth_date.strftime('%d.%m.%Y'),
             'gender': actual_data.gender,
             'relatives': actual_data.relatives,
         }
@@ -113,10 +116,11 @@ class TestImportChange(APITransactionTestCase):
             'building': self.INITIAL_DATA.building,
             'apartment': self.INITIAL_DATA.apartment,
             'name': self.INITIAL_DATA.name,
-            'birth_date': self.INITIAL_DATA.birth_date,
+            'birth_date': self.CITIZEN_PCP['birth_date'],
             'gender': self.INITIAL_DATA.gender,
             'relatives': self.INITIAL_DATA.relatives,
         }
+
         self.assertEqual(expected_data, actual_data)
 
 
