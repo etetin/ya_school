@@ -30,5 +30,21 @@
             "gender": "female",
             "relatives": [1]
         }
+    },
+    {
+        "model": "common.citizen",
+        "pk": 3,
+        "fields": {
+            "citizen_id": 1,
+            "import_id": 2,
+            "town": "ekb",
+            "street": "Петра Не Великого",
+            "building": "moi dom",
+            "apartment": 13,
+            "name": "Петр Великий",
+            "birth_date": "1972-12-12",
+            "gender": "male",
+            "relatives": []
+        }
     }
 ]

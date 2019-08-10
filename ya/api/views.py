@@ -219,7 +219,11 @@ def import_data(request, import_id):
         'data': []
     }
 
-    for citizen in Citizen.objects.filter(import_id=import_id):
+    citizens = Citizen.objects.filter(import_id=import_id)
+    if len(citizens) == 0:
+        return Response(status=404)
+
+    for citizen in citizens:
         citizen_data = {
             "citizen_id": citizen.citizen_id,
             "town": citizen.town,
