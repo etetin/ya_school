@@ -4,7 +4,9 @@ from rest_framework.decorators import api_view
 from django.db import transaction
 from django.db.models import Max, Count
 from django.db.models.functions import ExtractMonth
+from collections import defaultdict
 
+import numpy as np
 import json
 import math
 from datetime import datetime, date
@@ -264,9 +266,22 @@ def import_birthdays(request, import_id):
 
 @api_view(['GET',])
 def import_birthdays_age(request, import_id):
-    result = {}
-    data = {}
+    result = {'data': []}
+    data = defaultdict(lambda: [])
 
+    current_date = date.today()
+    # TODO is it possible to optimize the queryset? (move all calculation into db)
+    citizens = Citizen.objects.filter(import_id=import_id).values_list('town', 'birth_date')
+    for citizen_data in citizens:
+        years = relativedelta.relativedelta(current_date, citizen_data[1]).years
+        data[citizen_data[0]].append(years)
 
+    for town in data:
+        town_percentiles = {'town': town}
+        for percentile in [50, 75, 99]:
+            # TODO probable need to apply math.ceil?
+            town_percentiles[f'p{percentile}'] = np.percentile(np.array(data[town]), percentile)
+
+        result['data'].append(town_percentiles)
 
     return Response(result, status=200)
