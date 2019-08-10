@@ -246,12 +246,13 @@ def import_birthdays(request, import_id):
         'data': {}
     }
 
+    citizens = Citizen.objects.filter(import_id=import_id)
+    if len(citizens) == 0:
+        return Response(status=404)
+
     for num in range(1, 13):
         result['data'][str(num)] = []
 
-    print(result)
-
-    citizens = Citizen.objects.filter(import_id=import_id)
     for citizen in citizens:
         tt = citizens.filter(citizen_id__in=citizen.relatives) \
             .annotate(month=ExtractMonth('birth_date')) \
@@ -276,6 +277,10 @@ def import_birthdays_age(request, import_id):
     current_date = date.today()
     # TODO is it possible to optimize the queryset? (move all calculation into db)
     citizens = Citizen.objects.filter(import_id=import_id).values_list('town', 'birth_date')
+
+    if len(citizens) == 0:
+        return Response(status=404)
+
     for citizen_data in citizens:
         years = relativedelta.relativedelta(current_date, citizen_data[1]).years
         data[citizen_data[0]].append(years)
