@@ -11,10 +11,8 @@ class TestImport(APITransactionTestCase):
         'name': 'Иванов Иван Иванович',
         'birth_date': '01.02.2000',
         'gender': 'male',
-        'relatives': [2, 12]
+        'relatives': []
     }
-
-    # TODO add comparing of expected and actual data
 
     def test_wrong_param_citizen(self):
         for value in ['1', None]:
@@ -73,7 +71,7 @@ class TestImport(APITransactionTestCase):
             self.assertEqual(response.status_code, 400)
 
     def test_wrong_param_relatives(self):
-        for value in [2, ['1'], 'dsa', None]:
+        for value in [2, ['1'], [2], 'dsa', None]:
             self.CITIZEN['relatives'] = value
             response = self.client.post('/api/imports', {'citizens': [self.CITIZEN]})
 
