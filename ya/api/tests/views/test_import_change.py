@@ -2,7 +2,6 @@ from rest_framework.test import APITransactionTestCase
 
 from ya.common.models import Citizen
 
-from datetime import datetime, date
 
 class TestImportChange(APITransactionTestCase):
     fixtures = [
@@ -49,15 +48,30 @@ class TestImportChange(APITransactionTestCase):
     IMPORT_ID, CITIZEN_ID = 1, 1
 
     INITIAL_DATA = None
+    
+    REQUEST_URL = f'/api/imports/{IMPORT_ID}/citizens/{CITIZEN_ID}'
 
     def setUp(self):
         self.INITIAL_DATA = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
+
+    def test_wrong_request_method(self):
+        response = self.client.get(self.REQUEST_URL)
+        self.assertEqual(response.status_code, 405)
+
+        response = self.client.post(self.REQUEST_URL)
+        self.assertEqual(response.status_code, 405)
+
+        response = self.client.put(self.REQUEST_URL)
+        self.assertEqual(response.status_code, 405)
+
+        response = self.client.delete(self.REQUEST_URL)
+        self.assertEqual(response.status_code, 405)
 
     # try to update all fields by wrong params
     def test_wrong_param(self):
         # this one query is select from Citizen
         with self.assertNumQueries(1):
-            response = self.client.patch(f'/api/imports/{self.IMPORT_ID}/citizens/{self.CITIZEN_ID}', self.CITIZEN_WP)
+            response = self.client.patch(self.REQUEST_URL, self.CITIZEN_WP)
             self.assertEqual(response.status_code, 400)
 
         actual_data = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
@@ -66,7 +80,7 @@ class TestImportChange(APITransactionTestCase):
     # try to update 2 fields by wrong params
     def test_partial_wrong_params(self):
         with self.assertNumQueries(1):
-            response = self.client.patch(f'/api/imports/{self.IMPORT_ID}/citizens/{self.CITIZEN_ID}', self.CITIZEN_PWP)
+            response = self.client.patch(self.REQUEST_URL, self.CITIZEN_PWP)
             self.assertEqual(response.status_code, 400)
 
         actual_data = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
@@ -76,7 +90,7 @@ class TestImportChange(APITransactionTestCase):
     def test_correct_params(self):
         # this two queries is select from Citizen and update
         with self.assertNumQueries(2):
-            response = self.client.patch(f'/api/imports/{self.IMPORT_ID}/citizens/{self.CITIZEN_ID}', self.CITIZEN_CP)
+            response = self.client.patch(self.REQUEST_URL, self.CITIZEN_CP)
             self.assertEqual(response.status_code, 200)
 
         actual_data = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
@@ -95,7 +109,7 @@ class TestImportChange(APITransactionTestCase):
     # try to update 2 fields
     def test_partial_correct_params(self):
         with self.assertNumQueries(2):
-            response = self.client.patch(f'/api/imports/{self.IMPORT_ID}/citizens/{self.CITIZEN_ID}', self.CITIZEN_PCP)
+            response = self.client.patch(self.REQUEST_URL, self.CITIZEN_PCP)
             self.assertEqual(response.status_code, 200)
 
         actual_data = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
