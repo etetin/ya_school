@@ -7,8 +7,6 @@ from django.db.models.functions import ExtractMonth
 from collections import defaultdict
 
 import numpy as np
-import json
-import math
 from datetime import datetime, date
 from dateutil import relativedelta
 
@@ -103,9 +101,7 @@ def validator(citizens, full=True):
 
 @api_view(['POST',])
 def imports(request):
-    data = json.loads(request.body.decode('utf-8'))
-
-    citizens = data.get('citizens', None)
+    citizens = request.data.get('citizens', None)
     if not isinstance(citizens, list):
         return Response(status=400)
 
