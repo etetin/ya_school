@@ -127,6 +127,7 @@ def imports(request):
             name=citizen_data['name'],
             birth_date=convert_date(citizen_data['birth_date']),
             gender=citizen_data['gender'],
+            # TODO validation is not correct
             relatives=citizen_data['relatives'],
         )
 
