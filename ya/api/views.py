@@ -6,11 +6,21 @@ from django.db.models import Max, Count
 from django.db.models.functions import ExtractMonth
 from collections import defaultdict
 
+import json
 import numpy as np
 from datetime import datetime, date
 from dateutil import relativedelta
 
+
 from ya.common.models import Citizen
+
+
+# TODO create custom exception handler
+def get_request_body(request):
+    try:
+        return json.loads(request.body.decode('utf-8'))
+    except json.decoder.JSONDecodeError:
+        return None
 
 
 def diff(first, second):
@@ -18,15 +28,15 @@ def diff(first, second):
     return [item for item in first if item not in second]
 
 
-def try_convert_date(date):
+def try_convert_date(date_):
     try:
-        return datetime.strptime(date, "%d.%m.%Y").strftime('%Y-%m-%d')
-    except (ValueError, TypeError) as err:
+        return datetime.strptime(date_, "%d.%m.%Y").strftime('%Y-%m-%d')
+    except (ValueError, TypeError):
         return False
 
 
-def convert_date(date):
-    return datetime.strptime(date, "%d.%m.%Y").strftime('%Y-%m-%d')
+def convert_date(date_):
+    return datetime.strptime(date_, "%d.%m.%Y").strftime('%Y-%m-%d')
 
 
 def validator(citizens, full=True):
@@ -44,33 +54,33 @@ def validator(citizens, full=True):
         validation_data = {
             'citizen_id': {
                 'value': citizen_id, 
-                'conditions': [isinstance(citizen_id, int),],
+                'conditions': [isinstance(citizen_id, int), ],
             },
             'town': {
                 'value': town, 
-                'conditions': [isinstance(town, str),],
+                'conditions': [isinstance(town, str), ],
             },
             'street': {
                 'value': street, 
-                'conditions': [isinstance(street, str),],
+                'conditions': [isinstance(street, str), ],
             },
             'building': {
                 'value': building, 
-                'conditions': [isinstance(building, str),],
+                'conditions': [isinstance(building, str), ],
             },
             'apartment': {
                 'value': apartment,
-                'conditions': [isinstance(apartment, int),],
+                'conditions': [isinstance(apartment, int), ],
             },
             'name': {
                 'value': name,
-                'conditions': [isinstance(name, str),],
+                'conditions': [isinstance(name, str), ],
             },
             'birth_date': {
                 'value': birth_date,
                 'conditions': [
                     # validation that type this field is str included into function try_convert_date
-                    (lambda date: try_convert_date(date))(birth_date),
+                    (lambda date_: try_convert_date(date_))(birth_date),
                 ],
             },
             'gender': {
@@ -99,9 +109,13 @@ def validator(citizens, full=True):
         return True
 
 
-@api_view(['POST',])
+@api_view(['POST', ])
 def imports(request):
-    citizens = request.data.get('citizens', None)
+    data = get_request_body(request=request)
+    if data is None:
+        return Response(status=400)
+
+    citizens = data.get('citizens', None)
     if not isinstance(citizens, list):
         return Response(status=400)
 
@@ -140,25 +154,29 @@ def imports(request):
     return Response(response, status=201)
 
 
-@api_view(['PATCH',])
+@api_view(['PATCH', ])
 def import_change(request, import_id, citizen_id):
+    data = get_request_body(request=request)
+    if data is None:
+        return Response(status=400)
+
     try:
         citizen = Citizen.objects.get(import_id=import_id, citizen_id=citizen_id)
     except Citizen.DoesNotExist:
         return Response(status=404)
 
-    valid_citizens_data = validator(citizens=[request.data], full=False)
+    valid_citizens_data = validator(citizens=[data], full=False)
     if not valid_citizens_data:
         return Response(status=400)
 
-    town = request.data.get('town', None)
-    street = request.data.get('street', None)
-    building = request.data.get('building', None)
-    apartment = request.data.get('apartment', None)
-    name = request.data.get('name', None)
-    birth_date = request.data.get('birth_date', None)
-    gender = request.data.get('gender', None)
-    relatives = request.data.get('relatives', None)
+    town = data.get('town', None)
+    street = data.get('street', None)
+    building = data.get('building', None)
+    apartment = data.get('apartment', None)
+    name = data.get('name', None)
+    birth_date = data.get('birth_date', None)
+    gender = data.get('gender', None)
+    relatives = data.get('relatives', None)
 
     # It's normal way to set attrs like this???
     # fields = ['town', 'street', 'building', 'apartment', 'name', 'birth_date', 'gender', 'relatives']
@@ -210,7 +228,7 @@ def import_change(request, import_id, citizen_id):
     )
 
 
-@api_view(['GET',])
+@api_view(['GET', ])
 def import_data(request, import_id):
     result = {
         'data': []
@@ -237,7 +255,7 @@ def import_data(request, import_id):
     return Response(result, status=200)
 
 
-@api_view(['GET',])
+@api_view(['GET', ])
 def import_birthdays(request, import_id):
     result = {
         'data': {}
@@ -266,7 +284,7 @@ def import_birthdays(request, import_id):
     return Response(result, status=200)
 
 
-@api_view(['GET',])
+@api_view(['GET', ])
 def import_birthdays_age(request, import_id):
     result = {'data': []}
     data = defaultdict(lambda: [])
