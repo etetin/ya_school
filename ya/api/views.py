@@ -122,8 +122,8 @@ def imports(request):
     with transaction.atomic():
         import_id = Import.objects.create().id
 
-    for citizen_data in citizens:
-        Citizen.objects.create(
+    db_citizens = [
+        Citizen(
             import_id=import_id,
             citizen_id=citizen_data['citizen_id'],
             town=citizen_data['town'],
@@ -136,6 +136,9 @@ def imports(request):
             # TODO validation is not correct
             relatives=citizen_data['relatives'],
         )
+        for citizen_data in citizens
+    ]
+    Citizen.objects.bulk_create(db_citizens)
 
     response = {
         'data': {
