@@ -12,7 +12,7 @@ from datetime import datetime, date
 from dateutil import relativedelta
 
 
-from ya.common.models import Citizen
+from ya.common.models import Citizen, Import
 
 
 # TODO create custom exception handler
@@ -116,19 +116,11 @@ def imports(request):
         return Response(status=400)
 
     citizens = data.get('citizens', None)
-    if not isinstance(citizens, list):
-        return Response(status=400)
-
-    valid_citizens_data = validator(citizens=citizens)
-    if not valid_citizens_data:
+    if not (isinstance(citizens, list) and validator(citizens=citizens)):
         return Response(status=400)
 
     with transaction.atomic():
-        last_import = Citizen.objects.aggregate(max_value=Max('import_id'))
-        if last_import['max_value'] is None:
-            import_id = 1
-        else:
-            import_id = last_import['max_value'] + 1
+        import_id = Import.objects.create().id
 
     for citizen_data in citizens:
         Citizen.objects.create(
