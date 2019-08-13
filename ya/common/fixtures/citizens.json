@@ -12,7 +12,7 @@
             "name": "Иван Иванович Иванов",
             "birth_date": "1990-11-11",
             "gender": "male",
-            "relatives": [2]
+            "relatives": [2, 3, 4]
         }
     },
     {
@@ -35,14 +35,46 @@
         "model": "common.citizen",
         "pk": 3,
         "fields": {
-            "citizen_id": 1,
-            "import_id": 2,
+            "citizen_id": 3,
+            "import_id": 1,
             "town": "ekb",
             "street": "Петра Не Великого",
             "building": "moi dom",
             "apartment": 13,
             "name": "Петр Великий",
             "birth_date": "1972-12-12",
+            "gender": "male",
+            "relatives": [1]
+        }
+    },
+    {
+        "model": "common.citizen",
+        "pk": 4,
+        "fields": {
+            "citizen_id": 4,
+            "import_id": 1,
+            "town": "ekb",
+            "street": "ordinary street",
+            "building": "dom 45",
+            "apartment": 53,
+            "name": "vasilyi",
+            "birth_date": "1972-10-12",
+            "gender": "male",
+            "relatives": [1]
+        }
+    },
+    {
+        "model": "common.citizen",
+        "pk": 5,
+        "fields": {
+            "citizen_id": 1,
+            "import_id": 2,
+            "town": "penza",
+            "street": "wall street",
+            "building": "house",
+            "apartment": 53,
+            "name": "igor",
+            "birth_date": "1972-10-12",
             "gender": "male",
             "relatives": []
         }

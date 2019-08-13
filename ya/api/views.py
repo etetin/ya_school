@@ -275,16 +275,16 @@ def import_data(request, import_id):
 
 @api_view(['GET', ])
 def import_birthdays(request, import_id):
-    result = {
-        'data': {}
-    }
-
     citizens = Citizen.objects.filter(import_id=import_id)
     if len(citizens) == 0:
         return Response(status=404)
 
-    for num in range(1, 13):
-        result['data'][str(num)] = []
+    result = {
+        'data': {
+            str(num): []
+            for num in range(1, 12 + 1)
+        }
+    }
 
     for citizen in citizens:
         tt = citizens.filter(citizen_id__in=citizen.relatives) \
