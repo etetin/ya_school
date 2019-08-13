@@ -122,22 +122,41 @@ def imports(request):
     with transaction.atomic():
         import_id = Import.objects.create().id
 
-    db_citizens = [
-        Citizen(
-            import_id=import_id,
-            citizen_id=citizen_data['citizen_id'],
-            town=citizen_data['town'],
-            street=citizen_data['street'],
-            building=citizen_data['building'],
-            apartment=citizen_data['apartment'],
-            name=citizen_data['name'],
-            birth_date=convert_date(citizen_data['birth_date']),
-            gender=citizen_data['gender'],
-            # TODO validation is not correct
-            relatives=citizen_data['relatives'],
+    citizens_relatives = {}
+    db_citizens = []
+    for citizen_data in citizens:
+        citizens_relatives[citizen_data['citizen_id']] = citizen_data['relatives']
+
+        db_citizens.append(
+            Citizen(
+                import_id=import_id,
+                citizen_id=citizen_data['citizen_id'],
+                town=citizen_data['town'],
+                street=citizen_data['street'],
+                building=citizen_data['building'],
+                apartment=citizen_data['apartment'],
+                name=citizen_data['name'],
+                birth_date=convert_date(citizen_data['birth_date']),
+                gender=citizen_data['gender'],
+                # TODO validation is not correct
+                relatives=citizen_data['relatives'],
+            )
         )
-        for citizen_data in citizens
-    ]
+
+    for citizen_id in citizens_relatives:
+        try:
+            # citizen can't be relative to himself
+            if not all(
+                citizen_id in citizens_relatives[citizen_relative_id] and citizen_relative_id != citizen_id
+                for citizen_relative_id in citizens_relatives[citizen_id]
+            ):
+                return Response(status=400)
+        except KeyError:
+            return Response(status=400)
+
+
+
+
     Citizen.objects.bulk_create(db_citizens)
 
     response = {
@@ -172,6 +191,10 @@ def import_change(request, import_id, citizen_id):
     birth_date = data.get('birth_date', None)
     gender = data.get('gender', None)
     relatives = data.get('relatives', None)
+
+    # citizen can't be relative to himself
+    if relatives is not None and citizen_id in relatives:
+        return Response(status=404)
 
     # It's normal way to set attrs like this???
     # fields = ['town', 'street', 'building', 'apartment', 'name', 'birth_date', 'gender', 'relatives']
