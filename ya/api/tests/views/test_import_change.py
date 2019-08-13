@@ -88,10 +88,8 @@ class TestImportChange(APITransactionTestCase):
 
     # try to update all fields
     def test_correct_params(self):
-        # this two queries is select from Citizen and update
-        with self.assertNumQueries(2):
-            response = self.client.patch(self.REQUEST_URL, self.CITIZEN_CP)
-            self.assertEqual(response.status_code, 200)
+        response = self.client.patch(self.REQUEST_URL, self.CITIZEN_CP)
+        self.assertEqual(response.status_code, 200)
 
         actual_data = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
         actual_data = {
