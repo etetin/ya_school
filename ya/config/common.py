@@ -133,3 +133,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 HOST_ADDRESS = 'http://127.0.0.1:8000'
+
+APPEND_SLASH = False
