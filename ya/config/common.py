@@ -101,14 +101,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
-    # 'DEFAULT_AUTHENTICATION_CLASSES': (
-    #     'baristika.api.CustomTokenAuthentication',
-    # ),
-    # 'DEFAULT_PERMISSION_CLASSES': (
-        # 'rest_framework.permissions.AllowAny',
-        # 'baristika.api.AllowOptionsAuthentication',
-    # ),
-    # 'EXCEPTION_HANDLER': 'baristika.common.exception.custom_exception_handler',
+    'DEFAULT_PARSER_CLASSES': ['rest_framework.parsers.JSONParser', ],
+    'EXCEPTION_HANDLER': 'ya.common.exception.custom_exception_handler',
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 

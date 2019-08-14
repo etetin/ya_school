@@ -1,26 +1,19 @@
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import JSONParser
 
 from django.db import transaction
-from django.db.models import Max, Count
+from django.db.models import Count
 from django.db.models.functions import ExtractMonth
 from collections import defaultdict
 
-import json
 import numpy as np
 from datetime import datetime, date
 from dateutil import relativedelta
 
-
 from ya.common.models import Citizen, Import
-
-
-# TODO create custom exception handler
-def get_request_body(request):
-    try:
-        return json.loads(request.body.decode('utf-8'))
-    except json.decoder.JSONDecodeError:
-        return None
+from ya.common.exception import WrongParams, CitizenNotExist, CitizenCantBeRelativeToHimself, ImportNotExist, \
+    WrongRelativeData
 
 
 def diff(first, second):
@@ -110,14 +103,14 @@ def validator(citizens, full=True):
 
 
 @api_view(['POST', ])
+@parser_classes([JSONParser])
 def imports(request):
-    data = get_request_body(request=request)
-    if data is None:
-        return Response(status=400)
+    if not isinstance(request.data, dict):
+        raise WrongParams
 
-    citizens = data.get('citizens', None)
+    citizens = request.data.get('citizens', None)
     if not (isinstance(citizens, list) and validator(citizens=citizens)):
-        return Response(status=400)
+        raise WrongParams
 
     with transaction.atomic():
         import_id = Import.objects.create().id
@@ -138,7 +131,6 @@ def imports(request):
                 name=citizen_data['name'],
                 birth_date=convert_date(citizen_data['birth_date']),
                 gender=citizen_data['gender'],
-                # TODO validation is not correct
                 relatives=citizen_data['relatives'],
             )
         )
@@ -150,12 +142,9 @@ def imports(request):
                 citizen_id in citizens_relatives[citizen_relative_id] and citizen_relative_id != citizen_id
                 for citizen_relative_id in citizens_relatives[citizen_id]
             ):
-                return Response(status=400)
+                raise WrongRelativeData
         except KeyError:
-            return Response(status=400)
-
-
-
+            raise WrongRelativeData
 
     Citizen.objects.bulk_create(db_citizens)
 
@@ -169,32 +158,32 @@ def imports(request):
 
 
 @api_view(['PATCH', ])
+@parser_classes([JSONParser])
 def import_change(request, import_id, citizen_id):
-    data = get_request_body(request=request)
-    if data is None:
-        return Response(status=400)
+    if not isinstance(request.data, dict):
+        raise WrongParams
 
     try:
         citizen = Citizen.objects.get(import_id=import_id, citizen_id=citizen_id)
     except Citizen.DoesNotExist:
-        return Response(status=404)
+        raise CitizenNotExist
 
-    valid_citizens_data = validator(citizens=[data], full=False)
+    valid_citizens_data = validator(citizens=[request.data], full=False)
     if not valid_citizens_data:
-        return Response(status=400)
+        raise WrongParams
 
-    town = data.get('town', None)
-    street = data.get('street', None)
-    building = data.get('building', None)
-    apartment = data.get('apartment', None)
-    name = data.get('name', None)
-    birth_date = data.get('birth_date', None)
-    gender = data.get('gender', None)
-    relatives = data.get('relatives', None)
+    town = request.data.get('town', None)
+    street = request.data.get('street', None)
+    building = request.data.get('building', None)
+    apartment = request.data.get('apartment', None)
+    name = request.data.get('name', None)
+    birth_date = request.data.get('birth_date', None)
+    gender = request.data.get('gender', None)
+    relatives = request.data.get('relatives', None)
 
     # citizen can't be relative to himself
     if relatives is not None and citizen_id in relatives:
-        return Response(status=404)
+        raise CitizenCantBeRelativeToHimself
 
     # It's normal way to set attrs like this???
     # fields = ['town', 'street', 'building', 'apartment', 'name', 'birth_date', 'gender', 'relatives']
@@ -232,7 +221,7 @@ def import_change(request, import_id, citizen_id):
 
                 citizen.relatives = relatives
         except (ValueError, Citizen.DoesNotExist):
-            return Response(status=400)
+            raise WrongRelativeData
 
     if any(field is not None for field in [town, street, building, apartment, name, birth_date, gender, relatives]):
         citizen.save()
@@ -254,7 +243,7 @@ def import_data(request, import_id):
 
     citizens = Citizen.objects.filter(import_id=import_id)
     if len(citizens) == 0:
-        return Response(status=404)
+        raise ImportNotExist
 
     for citizen in citizens:
         citizen_data = {
@@ -277,7 +266,7 @@ def import_data(request, import_id):
 def import_birthdays(request, import_id):
     citizens = Citizen.objects.filter(import_id=import_id)
     if len(citizens) == 0:
-        return Response(status=404)
+        raise ImportNotExist
 
     result = {
         'data': {
@@ -312,7 +301,7 @@ def import_birthdays_age(request, import_id):
     citizens = Citizen.objects.filter(import_id=import_id).values_list('town', 'birth_date')
 
     if len(citizens) == 0:
-        return Response(status=404)
+        raise ImportNotExist
 
     for citizen_data in citizens:
         years = relativedelta.relativedelta(current_date, citizen_data[1]).years
