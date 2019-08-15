@@ -13,7 +13,7 @@ from dateutil import relativedelta
 
 from ya.common.models import Citizen, Import
 from ya.common.exception import WrongParams, CitizenNotExist, ImportNotExist, \
-    WrongRelativeData
+    WrongRelativeData, DuplicateCitizenId
 
 
 def diff(first, second):
@@ -115,6 +115,9 @@ def imports(request):
     citizens_relatives = {}
     for citizen_data in citizens:
         citizens_relatives[citizen_data['citizen_id']] = citizen_data['relatives']
+
+    if len(citizens_relatives) != len(citizens):
+        raise DuplicateCitizenId
 
     for citizen_id in citizens_relatives:
         try:

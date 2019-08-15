@@ -24,6 +24,11 @@ class WrongParams(ParseError):
     default_detail = 'Неверные параметры запроса'
 
 
+class DuplicateCitizenId(ParseError):
+    status_code = 400
+    default_detail = 'Дубликат граждан'
+
+
 class WrongRelativeData(ParseError):
     status_code = 400
     default_detail = 'Неверные параметры запроса'

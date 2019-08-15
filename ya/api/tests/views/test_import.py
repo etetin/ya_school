@@ -146,8 +146,62 @@ class TestImport(APITransactionTestCase):
 
                 self.assertEqual(response.status_code, 400)
 
+    def test_duplicate_citizen_id(self):
+        citizens = [
+            {
+                'citizen_id': 1,
+                'town': 'Москва',
+                'street': 'Льва Толстого',
+                'building': '16к7стр5',
+                'apartment': 2,
+                'name': 'Иванов Иван Иванович',
+                'birth_date': '01.02.2000',
+                'gender': 'male',
+                'relatives': []
+            },
+            {
+                'citizen_id': 1,
+                'town': 'Москва',
+                'street': 'Льва Толстого',
+                'building': '16к7стр5',
+                'apartment': 2,
+                'name': 'Иванов Иван Иванович',
+                'birth_date': '01.02.2000',
+                'gender': 'male',
+                'relatives': []
+            }
+        ]
+
+        response = self.client.post(self.REQUEST_URL, {'citizens': citizens})
+        self.assertEqual(response.status_code, 400)
+
     def test_valid_params(self):
         with self.assertNumQueries(2):
             response = self.client.post(self.REQUEST_URL, {'citizens': [self.CITIZEN, self.CITIZEN2, self.CITIZEN3]})
+
+            self.assertEqual(response.status_code, 201)
+
+    def test_big_import(self):
+        data = []
+
+        for i in range(1, 10001 + 1):
+            data.append({
+                "citizen_id": i,
+                "town": "Москва",
+                "street": "Льва Толстого",
+                "building": "16к7стр5",
+                "apartment": 2,
+                "name": "Иванов Иван Иванович",
+                "birth_date": "01.02.2000",
+                "gender": "male",
+                # create relatives with 2 previous and 2 next citizens
+                "relatives": list(range(max(1, i - 2), min(i + 2, 10001) + 1))
+            })
+
+        with self.assertNumQueries(2):
+            response = self.client.post(self.REQUEST_URL, {"citizens": data})
+            # f = open("demofile2.txt", "w")
+            # f.write(str({"citizens": data}))
+            # f.close()
 
             self.assertEqual(response.status_code, 201)
