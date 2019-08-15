@@ -39,6 +39,7 @@ class TestImportBirthdays(APITransactionTestCase):
         }
         expected_data['data']['10'] = [{'citizen_id': 1, 'count': 1}]
         expected_data['data']['11'] = [
+            {'citizen_id': 1, 'count': 1},
             {'citizen_id': 2, 'count': 1},
             {'citizen_id': 3, 'count': 1},
             {'citizen_id': 4, 'count': 1},

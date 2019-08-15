@@ -12,7 +12,7 @@
             "name": "Иван Иванович Иванов",
             "birth_date": "1990-11-11",
             "gender": "male",
-            "relatives": [2, 3, 4]
+            "relatives": [1, 2, 3, 4]
         }
     },
     {
