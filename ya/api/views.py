@@ -306,8 +306,7 @@ def import_birthdays_age(request, import_id):
     for town in data:
         town_percentiles = {'town': town}
         for percentile in [50, 75, 99]:
-            # TODO probable need to apply math.ceil?
-            town_percentiles[f'p{percentile}'] = np.percentile(np.array(data[town]), percentile)
+            town_percentiles[f'p{percentile}'] = round(np.percentile(np.array(data[town]), percentile), 2)
 
         result['data'].append(town_percentiles)
 
