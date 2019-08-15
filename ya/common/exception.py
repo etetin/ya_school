@@ -37,9 +37,3 @@ class CitizenNotExist(NotFound):
 class ImportNotExist(NotFound):
     status_code = 404
     default_detail = 'Импорт'
-
-
-class CitizenCantBeRelativeToHimself(NotFound):
-    status_code = 404
-    default_detail = 'Гражданин не может быть родственником самому себе'
-

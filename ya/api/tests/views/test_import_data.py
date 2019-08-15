@@ -11,7 +11,7 @@ class TestImportData(APITransactionTestCase):
     IMPORT_ID = 1
 
     def test_wrong_request_method(self):
-        url = '/api/imports/1/citizens'
+        url = '/imports/1/citizens'
         response = self.client.post(url)
         self.assertEqual(response.status_code, 405)
 
@@ -25,12 +25,12 @@ class TestImportData(APITransactionTestCase):
         self.assertEqual(response.status_code, 405)
 
     def test_wrong_url(self):
-        response = self.client.get('/api/imports/142374/citizens')
+        response = self.client.get('/imports/142374/citizens')
         self.assertEqual(response.status_code, 404)
 
     def test_getting_data(self):
         with self.assertNumQueries(1):
-            response = self.client.get(f'/api/imports/{self.IMPORT_ID}/citizens')
+            response = self.client.get(f'/imports/{self.IMPORT_ID}/citizens')
             self.assertEqual(response.status_code, 200)
 
         expected_data = []

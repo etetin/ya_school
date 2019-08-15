@@ -12,7 +12,7 @@ from datetime import datetime, date
 from dateutil import relativedelta
 
 from ya.common.models import Citizen, Import
-from ya.common.exception import WrongParams, CitizenNotExist, CitizenCantBeRelativeToHimself, ImportNotExist, \
+from ya.common.exception import WrongParams, CitizenNotExist, ImportNotExist, \
     WrongRelativeData
 
 
@@ -112,14 +112,25 @@ def imports(request):
     if not (isinstance(citizens, list) and validator(citizens=citizens)):
         raise WrongParams
 
-    with transaction.atomic():
-        import_id = Import.objects.create().id
-
     citizens_relatives = {}
-    db_citizens = []
     for citizen_data in citizens:
         citizens_relatives[citizen_data['citizen_id']] = citizen_data['relatives']
 
+    for citizen_id in citizens_relatives:
+        try:
+            if not all(
+                    citizen_id in citizens_relatives[citizen_relative_id]
+                    for citizen_relative_id in citizens_relatives[citizen_id]
+            ):
+                raise WrongRelativeData
+        except KeyError:
+            raise WrongRelativeData
+
+    with transaction.atomic():
+        import_id = Import.objects.create().id
+
+    db_citizens = []
+    for citizen_data in citizens:
         db_citizens.append(
             Citizen(
                 import_id=import_id,
@@ -134,17 +145,6 @@ def imports(request):
                 relatives=citizen_data['relatives'],
             )
         )
-
-    for citizen_id in citizens_relatives:
-        try:
-            # citizen can't be relative to himself
-            if not all(
-                citizen_id in citizens_relatives[citizen_relative_id] and citizen_relative_id != citizen_id
-                for citizen_relative_id in citizens_relatives[citizen_id]
-            ):
-                raise WrongRelativeData
-        except KeyError:
-            raise WrongRelativeData
 
     Citizen.objects.bulk_create(db_citizens)
 
@@ -180,10 +180,6 @@ def import_change(request, import_id, citizen_id):
     birth_date = request.data.get('birth_date', None)
     gender = request.data.get('gender', None)
     relatives = request.data.get('relatives', None)
-
-    # citizen can't be relative to himself
-    if relatives is not None and citizen_id in relatives:
-        raise CitizenCantBeRelativeToHimself
 
     # It's normal way to set attrs like this???
     # fields = ['town', 'street', 'building', 'apartment', 'name', 'birth_date', 'gender', 'relatives']

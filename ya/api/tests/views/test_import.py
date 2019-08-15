@@ -36,7 +36,7 @@ class TestImport(APITransactionTestCase):
         'relatives': []
     }
 
-    REQUEST_URL = '/api/imports'
+    REQUEST_URL = '/imports'
 
     def test_wrong_request_method(self):
         response = self.client.get(self.REQUEST_URL)
@@ -54,64 +54,72 @@ class TestImport(APITransactionTestCase):
     def test_wrong_param_citizen(self):
         with self.assertNumQueries(0):
             for value in ['1', None]:
-                self.CITIZEN['citizen_id'] = value
-                response = self.client.post(self.REQUEST_URL, {'citizens': [self.CITIZEN]})
+                citizen = self.CITIZEN.copy()
+                citizen['citizen_id'] = value
+                response = self.client.post(self.REQUEST_URL, {'citizens': [citizen]})
 
                 self.assertEqual(response.status_code, 400)
 
     def test_wrong_param_town(self):
         with self.assertNumQueries(0):
             for value in [2, None]:
-                self.CITIZEN['town'] = value
-                response = self.client.post(self.REQUEST_URL, {'citizens': [self.CITIZEN]})
+                citizen = self.CITIZEN.copy()
+                citizen['town'] = value
+                response = self.client.post(self.REQUEST_URL, {'citizens': [citizen]})
 
                 self.assertEqual(response.status_code, 400)
 
     def test_wrong_param_street(self):
         with self.assertNumQueries(0):
             for value in [2, None]:
-                self.CITIZEN['street'] = value
-                response = self.client.post(self.REQUEST_URL, {'citizens': [self.CITIZEN]})
+                citizen = self.CITIZEN.copy()
+                citizen['street'] = value
+                response = self.client.post(self.REQUEST_URL, {'citizens': [citizen]})
 
                 self.assertEqual(response.status_code, 400)
 
     def test_wrong_param_building(self):
         with self.assertNumQueries(0):
             for value in [2, None]:
-                self.CITIZEN['building'] = value
-                response = self.client.post(self.REQUEST_URL, {'citizens': [self.CITIZEN]})
+                citizen = self.CITIZEN.copy()
+                citizen['building'] = value
+                response = self.client.post(self.REQUEST_URL, {'citizens': [citizen]})
 
                 self.assertEqual(response.status_code, 400)
 
     def test_wrong_param_apartment(self):
         with self.assertNumQueries(0):
             for value in ['1', None]:
-                self.CITIZEN['apartment'] = value
-                response = self.client.post(self.REQUEST_URL, {'citizens': [self.CITIZEN]})
+                citizen = self.CITIZEN.copy()
+                citizen['apartment'] = value
+                response = self.client.post(self.REQUEST_URL, {'citizens': [citizen]})
 
                 self.assertEqual(response.status_code, 400)
 
     def test_wrong_param_name(self):
         with self.assertNumQueries(0):
             for value in [2, None]:
-                self.CITIZEN['name'] = value
-                response = self.client.post(self.REQUEST_URL, {'citizens': [self.CITIZEN]})
+                citizen = self.CITIZEN.copy()
+                citizen['name'] = value
+                response = self.client.post(self.REQUEST_URL, {'citizens': [citizen]})
 
                 self.assertEqual(response.status_code, 400)
 
     def test_wrong_param_birth_date(self):
         with self.assertNumQueries(0):
             for value in [2, '123', '2001.02.03', '42.02.2012', None]:
-                self.CITIZEN['birth_date'] = value
-                response = self.client.post(self.REQUEST_URL, {'citizens': [self.CITIZEN]})
+                citizen = self.CITIZEN.copy()
+                citizen['birth_date'] = value
+                response = self.client.post(self.REQUEST_URL, {'citizens': [citizen]})
 
                 self.assertEqual(response.status_code, 400)
 
     def test_wrong_param_gender(self):
         with self.assertNumQueries(0):
             for value in [2, 'man', None]:
-                self.CITIZEN['gender'] = value
-                response = self.client.post(self.REQUEST_URL, {'citizens': [self.CITIZEN]})
+                citizen = self.CITIZEN.copy()
+                citizen['gender'] = value
+                response = self.client.post(self.REQUEST_URL, {'citizens': [citizen]})
 
                 self.assertEqual(response.status_code, 400)
 
@@ -120,20 +128,21 @@ class TestImport(APITransactionTestCase):
             values = [
                 2, ['1'], 'dsa', None,  # Wrong type of values
                 [80],  # non existed citizen_id
-                [1],  # citizen can't be related to himself
                 [3],  # wrong cause citizen with id=3 not exist in relatives citizen with id=1
             ]
             for value in values:
-                self.CITIZEN['relatives'] = value
-                response = self.client.post(self.REQUEST_URL, {'citizens': [self.CITIZEN, self.CITIZEN2, self.CITIZEN3]})
+                citizen = self.CITIZEN.copy()
+                citizen['relatives'] = value
+                response = self.client.post(self.REQUEST_URL, {'citizens': [citizen, self.CITIZEN2, self.CITIZEN3]})
 
                 self.assertEqual(response.status_code, 400)
 
     def test_wrong_param_relatives_v2(self):
         with self.assertNumQueries(0):
             for value in [2, ['1'], [2], 'dsa', None]:
-                self.CITIZEN['relatives'] = value
-                response = self.client.post(self.REQUEST_URL, {'citizens': [self.CITIZEN]})
+                citizen = self.CITIZEN.copy()
+                citizen['relatives'] = value
+                response = self.client.post(self.REQUEST_URL, {'citizens': [citizen]})
 
                 self.assertEqual(response.status_code, 400)
 

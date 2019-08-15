@@ -49,7 +49,7 @@ class TestImportChange(APITransactionTestCase):
 
     INITIAL_DATA = None
     
-    REQUEST_URL = f'/api/imports/{IMPORT_ID}/citizens/{CITIZEN_ID}'
+    REQUEST_URL = f'/imports/{IMPORT_ID}/citizens/{CITIZEN_ID}'
 
     def setUp(self):
         self.INITIAL_DATA = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
