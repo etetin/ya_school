@@ -11,7 +11,7 @@ class TestImportBirthdays(APITransactionTestCase):
     IMPORT_ID = 1
 
     def test_wrong_request_method(self):
-        url = '/imports/1/citizens'
+        url = '/imports/1/citizens/birthdays'
         response = self.client.post(url)
         self.assertEqual(response.status_code, 405)
 
