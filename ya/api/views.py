@@ -175,54 +175,29 @@ def import_change(request, import_id, citizen_id):
     if not valid_citizens_data:
         raise WrongParams
 
-    town = request.data.get('town', None)
-    street = request.data.get('street', None)
-    building = request.data.get('building', None)
-    apartment = request.data.get('apartment', None)
-    name = request.data.get('name', None)
-    birth_date = request.data.get('birth_date', None)
-    gender = request.data.get('gender', None)
-    relatives = request.data.get('relatives', None)
+    fields = ['town', 'street', 'building', 'apartment', 'name', 'birth_date', 'gender', 'relatives']
+    for field in fields:
+        value = request.data.get(field, None)
+        if value is not None:
+            if field == 'relatives':
+                try:
+                    with transaction.atomic():
+                        for relative_citizen_id in diff(value, citizen.relatives):
+                            relative_citizen = Citizen.objects.get(import_id=import_id, citizen_id=relative_citizen_id)
+                            relative_citizen.relatives.append(citizen_id)
+                            relative_citizen.save()
 
-    # It's normal way to set attrs like this???
-    # fields = ['town', 'street', 'building', 'apartment', 'name', 'birth_date', 'gender', 'relatives']
-    # for field in fields:
-    #     data = request.data.get(field, None)
-    #     if data is not None:
-    #         citizen.__setattr__(field, data)
+                        for relative_citizen_id in diff(citizen.relatives, value):
+                            relative_citizen = Citizen.objects.get(import_id=import_id, citizen_id=relative_citizen_id)
+                            relative_citizen.relatives.remove(citizen_id)
+                            relative_citizen.save()
+                except (ValueError, Citizen.DoesNotExist):
+                    raise WrongRelativeData
+            elif field == 'birth_date':
+                value = convert_date(value)
 
-    if town is not None:
-        citizen.town = town
-    if street is not None:
-        citizen.street = street
-    if building is not None:
-        citizen.building = building
-    if apartment is not None:
-        citizen.apartment = apartment
-    if name is not None:
-        citizen.name = name
-    if birth_date is not None:
-        citizen.birth_date = convert_date(birth_date)
-    if gender is not None:
-        citizen.gender = gender
-    if relatives is not None:
-        try:
-            with transaction.atomic():
-                for relative_citizen_id in diff(relatives, citizen.relatives):
-                    relative_citizen = Citizen.objects.get(import_id=import_id, citizen_id=relative_citizen_id)
-                    relative_citizen.relatives.append(citizen_id)
-                    relative_citizen.save()
-
-                for relative_citizen_id in diff(citizen.relatives, relatives):
-                    relative_citizen = Citizen.objects.get(import_id=import_id, citizen_id=relative_citizen_id)
-                    relative_citizen.relatives.remove(citizen_id)
-                    relative_citizen.save()
-
-                citizen.relatives = relatives
-        except (ValueError, Citizen.DoesNotExist):
-            raise WrongRelativeData
-
-    if any(field is not None for field in [town, street, building, apartment, name, birth_date, gender, relatives]):
+            setattr(citizen, field, value)
+    else:
         citizen.save()
 
     return Response({
