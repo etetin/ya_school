@@ -78,5 +78,69 @@
             "gender": "male",
             "relatives": []
         }
+    },
+    {
+        "model": "common.citizen",
+        "pk": 6,
+        "fields": {
+            "citizen_id": 1,
+            "import_id": 3,
+            "town": "spb",
+            "street": "wall street",
+            "building": "house",
+            "apartment": 53,
+            "name": "igor",
+            "birth_date": "2000-12-12",
+            "gender": "male",
+            "relatives": []
+        }
+    },
+    {
+        "model": "common.citizen",
+        "pk": 7,
+        "fields": {
+            "citizen_id": 2,
+            "import_id": 3,
+            "town": "spb",
+            "street": "wall street",
+            "building": "house",
+            "apartment": 53,
+            "name": "igor",
+            "birth_date": "1972-12-12",
+            "gender": "male",
+            "relatives": []
+        }
+    },
+    {
+        "model": "common.citizen",
+        "pk": 8,
+        "fields": {
+            "citizen_id": 3,
+            "import_id": 3,
+            "town": "spb",
+            "street": "wall street",
+            "building": "house",
+            "apartment": 53,
+            "name": "igor",
+            "birth_date": "1942-12-12",
+            "gender": "male",
+            "relatives": []
+        }
+    },
+    {
+        "model": "common.citizen",
+        "pk": 9,
+        "fields": {
+            "citizen_id": 4,
+            "import_id": 3,
+            "town": "spb",
+            "street": "wall street",
+            "building": "house",
+            "apartment": 53,
+            "name": "igor",
+            "birth_date": "1902-12-12",
+            "gender": "male",
+            "relatives": []
+        }
     }
 ]
