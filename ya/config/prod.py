@@ -8,5 +8,5 @@ ALLOWED_HOSTS = [
 ]
 
 # TODO probably it's not best idea store username and password right here.
-DATABASES['default']['USER'] = 'postgres'
-DATABASES['default']['PASSWORD'] = 'postgres'
+DATABASES['default']['USER'] = 'ya_user'
+DATABASES['default']['PASSWORD'] = 'ya_user'
