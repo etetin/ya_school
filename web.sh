@@ -2,10 +2,10 @@
 
 set -e
 
-echo "from .prod import *" >> $PWD/ya/config/__init__.py
+SERVER_NAME=$(curl ifconfig.me)
+echo "from .local import *\nALLOWED_HOSTS = [\n    '$SERVER_NAME',\n]\n\nDATABASES['default']['USER'] = '<ya_user>'\nDATABASES['default']['PASSWORD'] = 'ya_user'" > $PWD/ya/config/__init__.py
 
-sudo ln -sf $PWD/ya/config/nginx.conf /etc/nginx/sites-enabled/ya.nginx.conf
-sudo service nginx restart
+sudo cp $PWD/ya/config/nginx.conf /etc/nginx/sites-enabled/ya.nginx.conf
 
 sudo ln -sf $PWD/ya/config/supervisor.conf /etc/supervisor/conf.d/ya.supervisor.conf
 sudo supervisorctl reread
