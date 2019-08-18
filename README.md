@@ -2,6 +2,11 @@
 
 Project for admission to yandex backend-school.
 
+## Notice
+
+For requests `POST /imports` and `PATCH imports/<int:import_id>/citizens/<int:citizen_id>` need to set header `Content-Type: application/json`
+
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
@@ -32,7 +37,7 @@ Retype new UNIX password:
 passwd: password updated successfully
 ```
 
-set the new user's information.
+Set the new user's information.
 ```
 User information prompts:
 Changing the user information for username
@@ -45,13 +50,12 @@ Enter the new value, or press ENTER for the default
 Is the information correct? [Y/n]
 ```
 
-
-add the user to the sudo group.
+Add the user to the sudo group.
 ```
 $ usermod -aG sudo entrant
 ```
 
-authorize by the created user
+Authorize by the created user
 ```
 $ su entrant
 ```
@@ -82,37 +86,36 @@ postgres=# grant all privileges on database ya_api to ya_user;
 
 ### Installing
 
-create base directory for project and venv and go to it
+Create base directory for project and venv and go to it
 ```
 $ mkdir "ya_school" && cd $_;
 ```
 
-create venv
+Create venv
 ```
 $ python3.7 -m venv env
 ```
 
-activate venv and clone repository
+Activate venv and clone repository
 ```
 $ source env/bin/activate
 (env) $ git clone https://github.com/etetin/ya_school.git
 ```
 
-move into project directory
+Move into project directory
 
 ```
 (env) $ cd ya_school
 ```
 
-install requirements
+Install requirements
 ```
 (env) $ pip install -r requirements.txt
 ```
 
-
-run script for choosing django config and creating links for supervisor and create copy nginx.conf  
+Run script for choosing django config and creating links for supervisor and create copy nginx.conf  
 ```
-(env) $ sudo sh web.sh
+(env) $ sh web.sh
 ```
 
 In /etc/nginx/sites-enabled/ya.nginx.conf replace <server_ip> on actual server ip and after this restart nginx
@@ -121,25 +124,23 @@ In /etc/nginx/sites-enabled/ya.nginx.conf replace <server_ip> on actual server i
 (env) $ sudo service nginx restart
 ```  
 
-apply migrations
+Apply migrations
 ```
 (env) $ python manage.py migrate
 ```
 
-
-check statuses of nginx and supervisor
+Check statuses of nginx and supervisor
 ```
 (env) $ sudo service nginx status
 (env) $ sudo supervisorctl status ya_school
 ```
-if nginx is running and the answer supervisor looks like lines below, the project was successfully launched. 
+If nginx is running and the answer supervisor looks like lines below, the project was successfully launched. 
 ```
 ya_school                        RUNNING   pid 12920, uptime 0:00:31
 ```
 
 
 ## Running the tests
-
 
 ```
 (env) $ python manage.py test ya.api 

@@ -10,7 +10,6 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'ya.api',
     'ya.common'
 ]
@@ -98,7 +97,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
-HOST_ADDRESS = 'http://127.0.0.1:8000'
-
 APPEND_SLASH = False
+
+HOST_ADDRESS = 'http://0.0.0.0:8080'

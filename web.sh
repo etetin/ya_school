@@ -3,7 +3,7 @@
 set -e
 
 SERVER_NAME=$(curl ifconfig.me)
-echo "from .local import *\nALLOWED_HOSTS = [\n    '$SERVER_NAME',\n]\n\nDATABASES['default']['USER'] = '<ya_user>'\nDATABASES['default']['PASSWORD'] = 'ya_user'" > $PWD/ya/config/__init__.py
+echo "from .prod import *\n\nALLOWED_HOSTS = [\n    '$SERVER_NAME',\n]\n\nDATABASES['default']['USER'] = 'ya_user'\nDATABASES['default']['PASSWORD'] = 'ya_user'" > $PWD/ya/config/__init__.py
 
 sudo cp $PWD/ya/config/nginx.conf /etc/nginx/sites-enabled/ya.nginx.conf
 
