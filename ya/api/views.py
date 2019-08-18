@@ -23,13 +23,17 @@ def diff(first, second):
 
 def try_convert_date(date_):
     try:
+        # it's strange that strptime(date_, "%d.%m.%Y") correctly work with  days and months without padding zero
+        if date_ is not None and len(date_) != 10:
+            return False
+
         return datetime.strptime(date_, "%d.%m.%Y").strftime('%Y-%m-%d')
     except (ValueError, TypeError):
         return False
 
 
 def convert_date(date_):
-    return datetime.strptime(date_, "%d.%m.%Y").strftime('%Y-%m-%d')
+    return datetime.strptime(datetime.strptime(date_, "%d.%m.%Y").strftime('%Y-%m-%d'), '%Y-%m-%d')
 
 
 def validator(citizens, full=True):
@@ -163,7 +167,8 @@ def imports(request):
 @api_view(['PATCH', ])
 @parser_classes([JSONParser])
 def import_change(request, import_id, citizen_id):
-    if not isinstance(request.data, dict):
+    if (isinstance(request.data, dict) and len(request.data) == 0) or \
+            request.data.get('citizen_id') is not None:
         raise WrongParams
 
     try:
@@ -201,9 +206,7 @@ def import_change(request, import_id, citizen_id):
         citizen.save()
 
     return Response({
-            'data': {
-                'import_id': import_id
-            }
+            'data': citizen.get_data()
         },
         status=200
     )
@@ -220,18 +223,7 @@ def import_data(request, import_id):
         raise ImportNotExist
 
     for citizen in citizens:
-        citizen_data = {
-            "citizen_id": citizen.citizen_id,
-            "town": citizen.town,
-            "street": citizen.street,
-            "building": citizen.building,
-            "apartment": citizen.apartment,
-            "name": citizen.name,
-            "birth_date": citizen.birth_date.strftime("%d.%m.%Y"),
-            "gender": citizen.gender,
-            "relatives": citizen.relatives,
-        }
-        result['data'].append(citizen_data)
+        result['data'].append(citizen.get_data())
 
     return Response(result, status=200)
 

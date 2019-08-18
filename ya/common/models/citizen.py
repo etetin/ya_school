@@ -20,3 +20,16 @@ class Citizen(models.Model):
         unique_together = (
             ('import_id', 'citizen_id'),
         )
+        
+    def get_data(self):
+        return {
+            "citizen_id": self.citizen_id,
+            "town": self.town,
+            "street": self.street,
+            "building": self.building,
+            "apartment": self.apartment,
+            "name": self.name,
+            "birth_date": self.birth_date.strftime("%d.%m.%Y"),
+            "gender": self.gender,
+            "relatives": self.relatives,
+        }

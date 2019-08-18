@@ -107,7 +107,7 @@ class TestImport(APITransactionTestCase):
 
     def test_wrong_param_birth_date(self):
         with self.assertNumQueries(0):
-            for value in [2, '123', '2001.02.03', '42.02.2012', None]:
+            for value in [2, '123', '2001.02.03', '42.02.2012', '2.2.2012', None]:
                 citizen = self.CITIZEN.copy()
                 citizen['birth_date'] = value
                 response = self.client.post(self.REQUEST_URL, {'citizens': [citizen]})

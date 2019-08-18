@@ -1,3 +1,5 @@
+from copy import copy
+
 from rest_framework.test import APITransactionTestCase
 
 from ya.common.models import Citizen
@@ -45,6 +47,14 @@ class TestImportChange(APITransactionTestCase):
         'birth_date': '07.09.1996',
     }
 
+    # partial wrong params v2
+    CITIZEN_PWP_V2 = {
+        'citizen_id': 1,
+        'town': 'old town',
+        'street': "road",
+        'birth_date': '07.09.1996',
+    }
+
     IMPORT_ID, CITIZEN_ID = 1, 1
 
     INITIAL_DATA = None
@@ -86,23 +96,32 @@ class TestImportChange(APITransactionTestCase):
         actual_data = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
         self.assertEqual(self.INITIAL_DATA, actual_data)
 
+    # try to send without data
+    def test_request_without_params(self):
+        with self.assertNumQueries(0):
+            response = self.client.patch(self.REQUEST_URL, {})
+            self.assertEqual(response.status_code, 400)
+
+    # try to send data only with citizen_id
+    def test_request_only_with_param_citizen_id(self):
+        with self.assertNumQueries(0):
+            response = self.client.patch(self.REQUEST_URL, {"citizen_id": 1})
+            self.assertEqual(response.status_code, 400)
+
+    # try to send data with citizen_id
+    def test_request_with_param_citizen_id(self):
+        with self.assertNumQueries(0):
+            response = self.client.patch(self.REQUEST_URL, self.CITIZEN_PWP_V2)
+            self.assertEqual(response.status_code, 400)
+
     # try to update all fields
     def test_correct_params(self):
         response = self.client.patch(self.REQUEST_URL, self.CITIZEN_CP)
         self.assertEqual(response.status_code, 200)
 
-        actual_data = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
-        actual_data = {
-            'town': actual_data.town,
-            'street': actual_data.street,
-            'building': actual_data.building,
-            'apartment': actual_data.apartment,
-            'name': actual_data.name,
-            'birth_date': actual_data.birth_date.strftime('%d.%m.%Y'),
-            'gender': actual_data.gender,
-            'relatives': actual_data.relatives,
-        }
-        self.assertEqual(self.CITIZEN_CP, actual_data)
+        actual_data = response.data['data']
+        for key in self.CITIZEN_CP:
+            self.assertEqual(self.CITIZEN_CP[key], actual_data[key])
 
     # try to update 2 fields
     def test_partial_correct_params(self):
@@ -110,29 +129,8 @@ class TestImportChange(APITransactionTestCase):
             response = self.client.patch(self.REQUEST_URL, self.CITIZEN_PCP)
             self.assertEqual(response.status_code, 200)
 
-        actual_data = Citizen.objects.get(import_id=self.IMPORT_ID, citizen_id=self.CITIZEN_ID)
-
-        actual_data = {
-            'town': actual_data.town,
-            'street': actual_data.street,
-            'building': actual_data.building,
-            'apartment': actual_data.apartment,
-            'name': actual_data.name,
-            'birth_date': actual_data.birth_date.strftime('%d.%m.%Y'),
-            'gender': actual_data.gender,
-            'relatives': actual_data.relatives,
-        }
-        expected_data = {
-            'town': self.CITIZEN_PCP['town'],
-            'street': self.CITIZEN_PCP['street'],
-            'building': self.INITIAL_DATA.building,
-            'apartment': self.INITIAL_DATA.apartment,
-            'name': self.INITIAL_DATA.name,
-            'birth_date': self.CITIZEN_PCP['birth_date'],
-            'gender': self.INITIAL_DATA.gender,
-            'relatives': self.INITIAL_DATA.relatives,
-        }
-
-        self.assertEqual(expected_data, actual_data)
+        actual_data = response.data['data']
+        for key in self.CITIZEN_PCP:
+            self.assertEqual(self.CITIZEN_PCP[key], actual_data[key])
 
 
