@@ -25,12 +25,12 @@ class TestImportBirthdaysAge(APITransactionTestCase):
         self.assertEqual(response.status_code, 405)
 
     def test_wrong_url(self):
-        response = self.client.get('/imports/142374/citizens/birthdays/age')
+        response = self.client.get('/imports/142374/towns/stat/percentile/age')
         self.assertEqual(response.status_code, 404)
 
     # not best test, but it is what it is
     def test_request(self):
-        response = self.client.get(f'/imports/{self.IMPORT_ID}/citizens/birthdays/age')
+        response = self.client.get(f'/imports/{self.IMPORT_ID}/towns/stat/percentile/age')
         expected_data = {
             'data': [
                 {

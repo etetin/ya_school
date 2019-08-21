@@ -262,7 +262,7 @@ def import_birthdays(request, import_id):
 
 
 @api_view(['GET', ])
-def import_birthdays_age(request, import_id):
+def import_town_stat(request, import_id):
     result = {'data': []}
     data = defaultdict(lambda: [])
 
