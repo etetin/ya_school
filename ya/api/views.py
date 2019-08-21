@@ -171,6 +171,11 @@ def import_change(request, import_id, citizen_id):
             request.data.get('citizen_id') is not None:
         raise WrongParams
 
+    fields = ['town', 'street', 'building', 'apartment', 'name', 'birth_date', 'gender', 'relatives']
+    for field in fields:
+        if field in request.data and request.data[field] is None:
+            raise WrongParams
+
     try:
         citizen = Citizen.objects.get(import_id=import_id, citizen_id=citizen_id)
     except Citizen.DoesNotExist:
@@ -180,7 +185,6 @@ def import_change(request, import_id, citizen_id):
     if not valid_citizens_data:
         raise WrongParams
 
-    fields = ['town', 'street', 'building', 'apartment', 'name', 'birth_date', 'gender', 'relatives']
     for field in fields:
         value = request.data.get(field, None)
         if value is not None:

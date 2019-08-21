@@ -148,5 +148,19 @@ ya_school                        RUNNING   pid 12920, uptime 0:00:31
 
 ## Deployment
 
-Add additional notes about how to deploy this on a live system
+If nginx conf has been changed, need to create his copy. Replace server_name if it need and restart nginx.
+```
+sudo cp $PWD/ya/config/nginx.conf /etc/nginx/sites-enabled/ya.nginx.conf
+sudo service nginx restart
+```
+
+Apply new migrations.
+```
+(env) $ python manage.py migrate
+```
+
+For restarting service enter command.
+```
+$ sudo supervisorctl restart ya_school
+```
 
