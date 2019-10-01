@@ -1,35 +1,28 @@
-from django.db import models
-from django.contrib.postgres.fields import ArrayField
+import json
 
 
-class Citizen(models.Model):
+class Citizen:
     GENDERS = ['male', 'female']
 
-    import_id = models.BigIntegerField(null=False)
-    citizen_id = models.BigIntegerField(null=False)
-    town = models.CharField(max_length=255, null=False)
-    street = models.CharField(max_length=255, null=False)
-    building = models.CharField(max_length=255, null=False)
-    apartment = models.IntegerField(null=False)
-    name = models.CharField(max_length=255, null=False)
-    birth_date = models.DateField(null=False)
-    gender = models.CharField(max_length=6, null=False)
-    relatives = ArrayField(models.BigIntegerField(null=False), default=list)
-
-    class Meta:
-        unique_together = (
-            ('import_id', 'citizen_id'),
-        )
-        
-    def get_data(self):
+    @staticmethod
+    def convert_for_insert(data):
         return {
-            "citizen_id": self.citizen_id,
-            "town": self.town,
-            "street": self.street,
-            "building": self.building,
-            "apartment": self.apartment,
-            "name": self.name,
-            "birth_date": self.birth_date.strftime("%d.%m.%Y"),
-            "gender": self.gender,
-            "relatives": self.relatives,
+            citizen_data['citizen_id']: json.dumps({
+                'town': citizen_data['town'],
+                'street': citizen_data['street'],
+                'building': citizen_data['building'],
+                'apartment': citizen_data['apartment'],
+                'name': citizen_data['name'],
+                'birth_date': citizen_data['birth_date'],
+                'gender': citizen_data['gender'],
+                'relatives': citizen_data['relatives'],
+            })
+            for citizen_data in data
         }
+
+    @staticmethod
+    def convert_to_object(data):
+        return [
+            {'citizen_id': citizen_id, **json.loads(data[citizen_id])}
+            for citizen_id in data
+        ]
