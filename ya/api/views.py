@@ -2,10 +2,6 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import JSONParser
 
-from django.db import transaction
-from django.db.models import Count
-from django.db.models.functions import ExtractMonth
-
 import numpy as np
 import json
 from datetime import datetime, date
@@ -13,8 +9,6 @@ from dateutil import relativedelta
 from collections import defaultdict
 
 from ya.common.models import Citizen, Import
-from ya.common.exception import WrongParams, CitizenNotExist, ImportNotExist, \
-    WrongRelativeData, DuplicateCitizenId
 from ya.common.validator import Validator
 
 
@@ -26,77 +20,37 @@ def diff(first, second):
 @api_view(['POST', ])
 @parser_classes([JSONParser])
 def imports(request):
-    if not isinstance(request.data, dict):
-        raise WrongParams
+    Validator.validate_citizens_data(data=request.data)
 
     citizens = request.data.get('citizens', None)
-    Validator.validate_citizens_data(citizens)
 
     new_import = Import()
-    import_id = new_import.create()
     new_import.set_citizens(citizens_data=citizens)
 
     response = {
         'data': {
-            'import_id': import_id
+            'import_id': new_import.import_id
         }
     }
 
     return Response(response, status=201)
 
-#
-# @api_view(['PATCH', ])
-# @parser_classes([JSONParser])
-# def import_change(request, import_id, citizen_id):
-#     if (isinstance(request.data, dict) and len(request.data) == 0) or \
-#             request.data.get('citizen_id') is not None:
-#         raise WrongParams
-#
-#     fields = ['town', 'street', 'building', 'apartment', 'name', 'birth_date', 'gender', 'relatives']
-#     for field in fields:
-#         if field in request.data and request.data[field] is None:
-#             raise WrongParams
-#
-#     try:
-#         citizen = Citizen.objects.get(import_id=import_id, citizen_id=citizen_id)
-#     except Citizen.DoesNotExist:
-#         raise CitizenNotExist
-#
-#     valid_citizens_data = validator(citizens=[request.data], full=False)
-#     if not valid_citizens_data:
-#         raise WrongParams
-#
-#     for field in fields:
-#         value = request.data.get(field, None)
-#         if value is not None:
-#             if field == 'relatives':
-#                 try:
-#                     with transaction.atomic():
-#                         for relative_citizen_id in diff(value, citizen.relatives):
-#                             relative_citizen = Citizen.objects.get(import_id=import_id, citizen_id=relative_citizen_id)
-#                             relative_citizen.relatives.append(citizen_id)
-#                             relative_citizen.save()
-#
-#                         for relative_citizen_id in diff(citizen.relatives, value):
-#                             relative_citizen = Citizen.objects.get(import_id=import_id, citizen_id=relative_citizen_id)
-#                             relative_citizen.relatives.remove(citizen_id)
-#                             relative_citizen.save()
-#                 except (ValueError, Citizen.DoesNotExist):
-#                     raise WrongRelativeData
-#             elif field == 'birth_date':
-#                 value = convert_date(value)
-#
-#             setattr(citizen, field, value)
-#     else:
-#         citizen.save()
-#
-#     return Response({
-#             'data': citizen.get_data()
-#         },
-#         status=200
-#     )
-#
-#
+
+@api_view(['PATCH', ])
+@parser_classes([JSONParser])
+def import_change(request, import_id, citizen_id):
+    citizen = Citizen(import_id=import_id, citizen_id=citizen_id)
+
+    Validator.validate_citizen_data_for_update(data=request.data)
+    citizen_data = citizen.update(data=request.data)
+
+    return Response({
+            'data': citizen_data
+        },
+        status=200
+    )
+
+
 @api_view(['GET', ])
 def import_data(request, import_id):
     import_ = Import(import_id=import_id)

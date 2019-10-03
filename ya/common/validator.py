@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from ya.common.exception import WrongParams, CitizenNotExist, ImportNotExist, \
-    WrongRelativeData, DuplicateCitizenId
+from ya.common.exception import WrongParams, WrongRelativeData, DuplicateCitizenId
 from ya.common.models import Citizen
 
 
@@ -18,7 +17,7 @@ def try_convert_date(date_):
 
 class Validator:
     @staticmethod
-    def validate_fields(citizens, full=True):
+    def __validate_fields(citizens, full=True):
         for citizen in citizens:
             citizen_id = citizen.get('citizen_id', None)
             town = citizen.get('town', None)
@@ -88,9 +87,13 @@ class Validator:
         else:
             return True
 
-    @staticmethod
-    def validate_citizens_data(citizens_data):
-        if not (isinstance(citizens_data, list) and Validator.validate_fields(citizens=citizens_data)):
+    @classmethod
+    def validate_citizens_data(cls, data):
+        if not isinstance(data, dict):
+            raise WrongParams
+
+        citizens_data = data.get('citizens', None)
+        if not isinstance(citizens_data, list) or not cls.__validate_fields(citizens=citizens_data):
             raise WrongParams
 
         citizens_relatives = {}
@@ -109,3 +112,17 @@ class Validator:
                     raise WrongRelativeData
             except KeyError:
                 raise WrongRelativeData
+
+    @classmethod
+    def validate_citizen_data_for_update(cls, data):
+        if (isinstance(data, dict) and len(data) == 0) or \
+                data.get('citizen_id') is not None:
+            raise WrongParams
+
+        fields = ['town', 'street', 'building', 'apartment', 'name', 'birth_date', 'gender', 'relatives']
+        for field in fields:
+            if field in data and data[field] is None:
+                raise WrongParams
+
+        if not cls.__validate_fields(citizens=[data], full=False):
+            raise WrongParams

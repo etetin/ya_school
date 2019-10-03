@@ -1,28 +1,66 @@
 import json
 
+from .import_ import Import
+from ya.common.exception import CitizenNotExist, WrongRelativeData
 
-class Citizen:
+
+def diff(first, second):
+    second = set(second)
+    return [item for item in first if item not in second]
+
+
+class Citizen(Import):
     GENDERS = ['male', 'female']
+    FIELDS = [
+        'town',
+        'street',
+        'building',
+        'apartment',
+        'name',
+        'birth_date',
+        'gender',
+        'relatives'
+    ]
 
-    @staticmethod
-    def convert_for_insert(data):
-        return {
-            citizen_data['citizen_id']: json.dumps({
-                'town': citizen_data['town'],
-                'street': citizen_data['street'],
-                'building': citizen_data['building'],
-                'apartment': citizen_data['apartment'],
-                'name': citizen_data['name'],
-                'birth_date': citizen_data['birth_date'],
-                'gender': citizen_data['gender'],
-                'relatives': citizen_data['relatives'],
-            })
-            for citizen_data in data
-        }
+    def __init__(self, import_id, citizen_id):
+        Import.__init__(self, import_id)
+        if not self._redis.hexists(f'import_id:{self.import_id}', citizen_id):
+            raise CitizenNotExist
 
-    @staticmethod
-    def convert_to_object(data):
-        return [
-            {'citizen_id': citizen_id, **json.loads(data[citizen_id])}
-            for citizen_id in data
-        ]
+        self.citizen_id = citizen_id
+
+        self.data = json.loads(self._redis.hget(f'import_id:{self.import_id}', self.citizen_id))
+
+    def get_data(self):
+        return {'citizen_id': self.citizen_id, **self.data}
+
+    def update(self, data):
+        for field in Citizen.FIELDS:
+            value = data.get(field, None)
+            if value is not None:
+                if field == 'relatives':
+                    try:
+                        for relative_citizen_id in diff(value, self.data['relatives']):
+                            relative_citizen = Citizen(import_id=self.import_id, citizen_id=relative_citizen_id)
+                            relative_citizen.data['relatives'].append(self.citizen_id)
+                            relative_citizen.save()
+
+                        for relative_citizen_id in diff(self.data['relatives'], value):
+                            relative_citizen = Citizen(import_id=self.import_id, citizen_id=relative_citizen_id)
+                            relative_citizen.data['relatives'].remove(self.citizen_id)
+                            relative_citizen.save()
+                    except ValueError:
+                        raise WrongRelativeData
+
+                self.data[field] = value
+        else:
+            self.save()
+
+        return self.get_data()
+
+    def save(self):
+        self._redis.hset(
+            f'import_id:{self.import_id}',
+            self.citizen_id,
+            json.dumps(self.data),
+        )
