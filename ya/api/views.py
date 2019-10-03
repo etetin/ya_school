@@ -91,29 +91,29 @@ def import_birthdays(request, import_id):
     }
 
     return Response(result, status=200)
-#
-#
-# @api_view(['GET', ])
-# def import_town_stat(request, import_id):
-#     result = {'data': []}
-#     data = defaultdict(lambda: [])
-#
-#     current_date = date.today()
-#     # TODO is it possible to optimize the queryset? (move all calculation into db)
-#     citizens = Citizen.objects.filter(import_id=import_id).values_list('town', 'birth_date')
-#
-#     if len(citizens) == 0:
-#         raise ImportNotExist
-#
-#     for citizen_data in citizens:
-#         years = relativedelta.relativedelta(current_date, citizen_data[1]).years
-#         data[citizen_data[0]].append(years)
-#
-#     for town in data:
-#         town_percentiles = {'town': town}
-#         for percentile in [50, 75, 99]:
-#             town_percentiles[f'p{percentile}'] = round(np.percentile(np.array(data[town]), percentile), 2)
-#
-#         result['data'].append(town_percentiles)
-#
-#     return Response(result, status=200)
+
+
+@api_view(['GET', ])
+def import_town_stat(request, import_id):
+    import_ = Import(import_id=import_id)
+    citizens = import_.get_data()
+
+    result = {'data': []}
+    data = defaultdict(lambda: [])
+
+    current_date = date.today()
+    for citizen_data in citizens:
+        years = relativedelta.relativedelta(
+            current_date,
+            datetime.strptime(citizen_data['birth_date'], '%d.%m.%Y')
+        ).years
+        data[citizen_data['town']].append(years)
+
+    for town in data:
+        town_percentiles = {'town': town}
+        for percentile in [50, 75, 99]:
+            town_percentiles[f'p{percentile}'] = round(np.percentile(np.array(data[town]), percentile), 2)
+
+        result['data'].append(town_percentiles)
+
+    return Response(result, status=200)
