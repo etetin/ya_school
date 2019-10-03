@@ -62,33 +62,35 @@ def import_data(request, import_id):
     return Response(result, status=200)
 
 
-# @api_view(['GET', ])
-# def import_birthdays(request, import_id):
-#     citizens = Citizen.objects.filter(import_id=import_id)
-#     if len(citizens) == 0:
-#         raise ImportNotExist
-#
-#     result = {
-#         'data': {
-#             str(num): []
-#             for num in range(1, 12 + 1)
-#         }
-#     }
-#
-#     for citizen in citizens:
-#         tt = citizens.filter(citizen_id__in=citizen.relatives) \
-#             .annotate(month=ExtractMonth('birth_date')) \
-#             .values('month') \
-#             .annotate(count=Count('id'))\
-#             .values('month', 'count')
-#
-#         for t in tt:
-#             result['data'][str(t["month"])].append({
-#                 'citizen_id': citizen.citizen_id,
-#                 'count': int(t["count"])
-#             })
-#
-#     return Response(result, status=200)
+@api_view(['GET', ])
+def import_birthdays(request, import_id):
+    import_ = Import(import_id=import_id)
+    citizens = import_.get_data(to_dict=True)
+
+    data = {
+        str(num): defaultdict(int)
+        for num in range(1, 12 + 1)
+    }
+
+    for citizen_id in citizens:
+        for relative_citizen_id in citizens[citizen_id]['relatives']:
+            month = citizens[relative_citizen_id]['birth_date'][3:5]
+            data[month][citizen_id] += 1
+
+    result = {
+        'data': {
+            month: [
+                {
+                    'citizen_id': citizen_id,
+                    'presents': data[month][citizen_id]
+                }
+                for citizen_id in data[month]
+            ]
+            for month in data
+        }
+    }
+
+    return Response(result, status=200)
 #
 #
 # @api_view(['GET', ])
