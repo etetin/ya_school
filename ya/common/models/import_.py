@@ -1,12 +1,12 @@
 import json
 
 from ya.common.exception import ImportNotExist
-from ya.common.redis import Redis
+from django_redis import get_redis_connection
 
 
 class Import:
     def __init__(self, import_id=None):
-        self._redis = Redis.get_instance()
+        self._redis = get_redis_connection("default")
 
         if import_id is None:
             self.create()
