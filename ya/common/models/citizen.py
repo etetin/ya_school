@@ -35,24 +35,31 @@ class Citizen(Import):
         return {'citizen_id': self.citizen_id, **self.data}
 
     def update(self, data):
+        updated_relative_citizens = {}
         for field in Citizen.FIELDS:
             value = data.get(field, None)
-            if value is not None:
-                if field == 'relatives':
-                    try:
-                        for relative_citizen_id in diff(value, self.data['relatives']):
-                            relative_citizen = Citizen(import_id=self.import_id, citizen_id=relative_citizen_id)
-                            relative_citizen.data['relatives'].append(self.citizen_id)
-                            relative_citizen.save()
+            if value is None:
+                continue
 
-                        for relative_citizen_id in diff(self.data['relatives'], value):
-                            relative_citizen = Citizen(import_id=self.import_id, citizen_id=relative_citizen_id)
-                            relative_citizen.data['relatives'].remove(self.citizen_id)
-                            relative_citizen.save()
-                    except ValueError:
-                        raise WrongRelativeData
+            if field == 'relatives':
+                try:
+                    for relative_citizen_id in diff(value, self.data['relatives']):
+                        relative_citizen = Citizen(import_id=self.import_id, citizen_id=relative_citizen_id)
+                        relative_citizen.data['relatives'].append(self.citizen_id)
+                        updated_relative_citizens[relative_citizen_id] = json.dumps(relative_citizen.get_data())
 
-                self.data[field] = value
+                    for relative_citizen_id in diff(self.data['relatives'], value):
+                        relative_citizen = Citizen(import_id=self.import_id, citizen_id=relative_citizen_id)
+                        relative_citizen.data['relatives'].remove(self.citizen_id)
+                        updated_relative_citizens[relative_citizen_id] = json.dumps(relative_citizen.get_data())
+                except ValueError:
+                    raise WrongRelativeData
+
+            self.data[field] = value
+
+        if updated_relative_citizens:
+            updated_relative_citizens[self.citizen_id] = json.dumps(self.get_data())
+            self._redis.hmset(f'import_id:{self.import_id}', updated_relative_citizens)
         else:
             self.save()
 
